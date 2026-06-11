@@ -21,7 +21,7 @@ public class TabCaptionBuilderTests
             @"C:\Test\Pages\1\Page.razor",
             @"C:\Test\Pages\2\Page.razor"];
 
-        Assert.Equal("1/Page.razor", Build(tabPaths.First(), tabPaths));
+        Assert.Equal(@"1\Page.razor", Build(tabPaths.First(), tabPaths));
     }
 
     [Fact]
@@ -44,6 +44,6 @@ public class TabCaptionBuilderTests
             @"C:\Test\Pages\1\Content\Page.razor",
             @"C:\Test\Pages\2\Content\Page.razor"];
 
-        Assert.Equal("1/Content/Page.razor", Build(tabPaths.First(), tabPaths));
+        Assert.Equal(@"1\Content\Page.razor", Build(tabPaths.First(), tabPaths));
     }
 }
