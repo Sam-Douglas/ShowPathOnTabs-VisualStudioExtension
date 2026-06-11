@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ShowPathOnTabs.Core/ShowPathOnTabs.Core.csproj" />
+  <Project Path="ShowPathOnTabs.UnitTests/ShowPathOnTabs.UnitTests.csproj" />
+  <Project Path="ShowPathOnTabs/ShowPathOnTabs.csproj">
+    <Deploy />
+  </Project>
+</Solution>
