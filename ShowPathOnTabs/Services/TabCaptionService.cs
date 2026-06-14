@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using ShowPathOnTabs.Core.Captioning;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,66 +12,77 @@ using System.Threading.Tasks;
 namespace ShowPathOnTabs.Services;
 
 /// <summary>
-/// Re-writes tab captions when any tabs are opened or closed
+/// Updates tab captions to show the path where there is ambiguity
 /// </summary>
+/// <param name="package"></param>
 internal sealed class TabCaptionService(AsyncPackage package) : IVsRunningDocTableEvents, IDisposable
 {
     private readonly AsyncPackage _package = package ?? throw new ArgumentNullException(nameof(package));
-    private IVsRunningDocumentTable? _rdt;
+    private IVsRunningDocumentTable? _runningDocTable;
     private IVsUIShell? _uiShell;
     private uint _rdtCookie;
     private bool _disposed;
 
-    // Called once from the package on startup. Grabs VS services,
-    // subscribes to document events, and captions any tabs already open.
     public async Task InitializeAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-        _rdt = await _package.GetServiceAsync(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
+        _runningDocTable = await _package.GetServiceAsync(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
         _uiShell = await _package.GetServiceAsync(typeof(SVsUIShell)) as IVsUIShell;
 
-        if (_rdt == null) return;
+        if (_runningDocTable == null) return;
 
-        _rdt.AdviseRunningDocTableEvents(this, out _rdtCookie);
+        _runningDocTable.AdviseRunningDocTableEvents(this, out _rdtCookie);
 
-        RefreshAllCaptions();
+        UpdateTabCaptions();
     }
 
-    // --- RDT event hooks: only these three actually trigger a refresh ---
-    // The rest are required by the interface but unused.
-
     public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining) => VSConstants.S_OK;
+
     public int OnAfterSave(uint docCookie) => VSConstants.S_OK;
+
     public int OnAfterAttributeChange(uint docCookie, uint grfAttribs) => VSConstants.S_OK;
 
+    /// <summary>
+    /// Tab is about to be fully closed
+    /// </summary>
     public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        RefreshAllCaptions(); // a tab is closing — recheck everything
+
+        UpdateTabCaptions();
         return VSConstants.S_OK;
     }
 
+    /// <summary>
+    /// A tab is about to be in focus.
+    /// fFirstShow is none-zero the first time a tab is opened.
+    /// </summary>
     public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        if (fFirstShow != 0) RefreshAllCaptions(); // a new tab just opened
+
+        if (fFirstShow != 0)
+            UpdateTabCaptions();
         return VSConstants.S_OK;
     }
 
+    /// <summary>
+    /// Tab is closed or hidden
+    /// </summary>
     public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
-        RefreshAllCaptions(); // a tab was hidden/closed
+
+        UpdateTabCaptions();
         return VSConstants.S_OK;
     }
 
-    // Recomputes and applies a caption for every currently open tab.
-    private void RefreshAllCaptions()
+    private void UpdateTabCaptions()
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        if (_rdt == null) return;
+        if (_runningDocTable == null) return;
 
         try
         {
@@ -87,57 +99,54 @@ internal sealed class TabCaptionService(AsyncPackage package) : IVsRunningDocTab
         }
         catch (Exception ex)
         {
-            // Swallow errors here — an exception escaping an RDT callback
-            // can disrupt the IDE's event dispatch.
-            System.Diagnostics.Debug.WriteLine($"Error in RefreshAllCaptions: {ex.Message}");
+            Debug.WriteLine($"Error in RefreshAllCaptions: {ex.Message}");
         }
     }
 
-    // Walks every open document window frame and returns its file path + frame.
     private List<(string FilePath, IVsWindowFrame Frame)> GetOpenDocuments()
     {
         ThreadHelper.ThrowIfNotOnUIThread();
         var result = new List<(string FilePath, IVsWindowFrame Frame)>();
 
-        if (_rdt == null || _uiShell == null) return result;
+        if (_runningDocTable == null || _uiShell == null) return result;
 
         try
         {
-            _uiShell.GetDocumentWindowEnum(out IEnumWindowFrames pEnum);
-            if (pEnum == null) return result;
+            // Enumerator for every tab
+            _uiShell.GetDocumentWindowEnum(out IEnumWindowFrames frameEnumerator);
+            if (frameEnumerator == null) return result;
 
-            IVsWindowFrame[] frames = new IVsWindowFrame[1];
-            while (pEnum.Next(1, frames, out uint fetched) == VSConstants.S_OK && fetched == 1)
+            IVsWindowFrame[] frameBuffer = new IVsWindowFrame[1];
+            while (frameEnumerator.Next(1, frameBuffer, out uint fetched) == VSConstants.S_OK && fetched == 1)
             {
-                var frame = frames[0];
+                var frame = frameBuffer[0];
                 if (frame == null) continue;
 
-                frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object pathObj);
+                // Get tab path
+                frame.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object monikerValue);
 
-                if (pathObj is string filePath && !string.IsNullOrEmpty(filePath) && File.Exists(filePath))
-                {
+                // Only keep file based tabs
+                if (monikerValue is string filePath && !string.IsNullOrEmpty(filePath) && File.Exists(filePath))
                     result.Add((filePath, frame));
-                }
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in GetOpenDocuments: {ex.Message}");
+            Debug.WriteLine($"Error in GetOpenDocuments: {ex.Message}");
         }
 
         return result;
     }
 
-    // Unsubscribes from RDT events so VS doesn't call back into a dead object.
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
 
         ThreadHelper.ThrowIfNotOnUIThread();
-        if (_rdt != null && _rdtCookie != 0)
+        if (_runningDocTable != null && _rdtCookie != 0)
         {
-            _rdt.UnadviseRunningDocTableEvents(_rdtCookie);
+            _runningDocTable.UnadviseRunningDocTableEvents(_rdtCookie);
             _rdtCookie = 0;
         }
     }
