@@ -10,6 +10,15 @@
 		<GeneratePkgDefFile>true</GeneratePkgDefFile>
 	</PropertyGroup>
 	<ItemGroup>
+		<Content Include="Resources\Icon.png">
+			<IncludeInVSIX>true</IncludeInVSIX>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="..\LICENSE.txt" Link="Resources\LICENSE.txt">
+			<IncludeInVSIX>true</IncludeInVSIX>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
 		<ProjectCapability Include="CreateVsixContainer" />
 	</ItemGroup>
 	<ItemGroup>

@@ -2,16 +2,23 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="ShowPathOnTabs.c758877c-693e-4299-88e4-4e481e7bdc20" Version="0.1" Language="en-GB" Publisher="Sam Douglas" />
-    <DisplayName>ShowPathOnTabs</DisplayName>
+    <DisplayName>Show Path On Tabs</DisplayName>
     <Description>Updates tab captions to show captions where there is ambiguity.</Description>
-    <License>https://github.com/Sam-Douglas/ShowPathOnTabs-VisualStudioExtension/blob/master/LICENSE.txt</License>
+    <License>Resources\LICENSE.txt</License>
+    <Icon>Resources\Icon.png</Icon>
     <Tags>Show Path On Tabs;Tabs;Tab;Tab Caption;Disambiguate</Tags>
     <Preview>true</Preview>
   </Metadata>
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.14, )" />
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.14, )" />
-    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[17.14, )" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.14, )">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.14, )">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[17.14, )">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" Version="[4.5,)" d:Source="Manual" />
