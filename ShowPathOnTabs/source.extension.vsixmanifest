@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="ShowPathOnTabs.c758877c-693e-4299-88e4-4e481e7bdc20" Version="0.1" Language="en-GB" Publisher="Sam Douglas" />
+    <Identity Id="ShowPathOnTabs.c758877c-693e-4299-88e4-4e481e7bdc20" Version="0.2" Language="en-GB" Publisher="Sam Douglas" />
     <DisplayName>Show Path On Tabs</DisplayName>
     <Description>Updates tab captions to show captions where there is ambiguity.</Description>
     <License>Resources\LICENSE.txt</License>
