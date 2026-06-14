@@ -6,7 +6,6 @@
     <Description>Updates tab captions to show captions where there is ambiguity.</Description>
     <License>https://github.com/Sam-Douglas/ShowPathOnTabs-VisualStudioExtension/blob/master/LICENSE.txt</License>
     <Tags>Show Path On Tabs;Tabs;Tab;Tab Caption;Disambiguate</Tags>
-    <GettingStartedGuide>https://github.com/Sam-Douglas/ShowPathOnTabs-VisualStudioExtension</GettingStartedGuide>
     <Preview>true</Preview>
   </Metadata>
   <Installation>
