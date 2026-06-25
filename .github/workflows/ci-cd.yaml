@@ -33,10 +33,18 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 
-      - name: Setup .NET (for dotnet test)
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.slnx') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Increment VSIX version
         id: vsix_version
@@ -51,7 +59,7 @@ jobs:
         run: msbuild ${{ env.Solution }} /t:Build /v:m /m /p:Configuration=${{ env.Configuration }} /p:DeployExtension=false
 
       - name: Test
-        run: dotnet test ${{ env.Solution }} --no-build --configuration ${{ env.Configuration }}
+        run: dotnet test ${{ env.Solution }} --configuration ${{ env.Configuration }}
 
       - name: Upload VSIX
         uses: actions/upload-artifact@v4
