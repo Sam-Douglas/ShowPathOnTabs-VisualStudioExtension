@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Build and Publish"
+
+permissions:
+  actions: write
+  contents: write
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  Solution: ShowPathOnTabs.slnx
+  VsixManifestPath: ShowPathOnTabs\source.extension.vsixmanifest
+  Configuration: Release
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.vsix_version.outputs.version-number }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Setup .NET (for dotnet test)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Increment VSIX version
+        id: vsix_version
+        uses: timheuer/vsix-version-stamp@v2
+        with:
+          manifest-file: ${{ env.VsixManifestPath }}
+
+      - name: Restore
+        run: msbuild ${{ env.Solution }} /t:Restore /v:m
+
+      - name: Build
+        run: msbuild ${{ env.Solution }} /t:Build /v:m /m /p:Configuration=${{ env.Configuration }} /p:DeployExtension=false
+
+      - name: Test
+        run: dotnet test ${{ env.Solution }} --no-build --configuration ${{ env.Configuration }}
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShowPathOnTabs.vsix
+          path: ShowPathOnTabs\bin\${{ env.Configuration }}\net472\ShowPathOnTabs.vsix
+
+  publish:
+    name: Publish
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download VSIX
+        uses: actions/download-artifact@v4
+        with:
+          name: ShowPathOnTabs.vsix
+
+      - name: Publish to Open VSIX Gallery
+        uses: madskristensen/publish-vsixgallery@v1
+        with:
+          vsix-file: ShowPathOnTabs.vsix
+
+      - name: Publish to Visual Studio Marketplace
+        uses: cezarypiatek/VsixPublisherAction@1.0
+        with:
+          extension-file: ShowPathOnTabs.vsix
+          publish-manifest-file: vs-publish.json
+          personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: Release ${{ needs.build.outputs.version }}
+          tag_name: v${{ needs.build.outputs.version }}
+          files: ShowPathOnTabs.vsix

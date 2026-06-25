@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "other" ],
+  "identity": {
+    "internalName": "ShowPathOnTabs",
+    "tags": [ "tabs", "tab caption", "disambiguate" ]
+  },
+  "assetFiles": [],
+  "overview": "README.md",
+  "publisher": "Sam Douglas",
+  "repo": "https://github.com/YOUR_USERNAME/ShowPathOnTabs"
+}
