@@ -11,7 +11,7 @@ public class TabCaptionBuilderTests
             @"C:\Test\Pages\Page.razor",
             @"C:\Test\Pages\DifferentPage.razor"];
 
-        Assert.Equal("Page.razor", Build(tabPaths.First(), tabPaths));
+        Assert.Equal("Pdage.razor", Build(tabPaths.First(), tabPaths));
     }
 
     [Fact]
