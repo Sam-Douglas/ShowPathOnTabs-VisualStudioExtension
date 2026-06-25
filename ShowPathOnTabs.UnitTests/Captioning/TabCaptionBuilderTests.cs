@@ -2,7 +2,7 @@
 
 namespace ShowPathOnTabs.UnitTests.Captioning;
 
-public cdlass TabCaptionBuilderTests
+public class TabCaptionBuilderTests
 {
     [Fact]
     public void UniqueFilename_ReturnsUnmodified_Caption()
