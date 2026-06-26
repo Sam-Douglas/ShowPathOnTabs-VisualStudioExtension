@@ -13,12 +13,14 @@ namespace ShowPathOnTabs
     [Guid(PackageGuidString)]
     public sealed class ShowPathOnTabsPackage : AsyncPackage
     {
-        public const string PackageGuidString = "0075df24-a377-4274-a304-a8501ad061e8";
+        private const string PackageGuidString = "0075df24-a377-4274-a304-a8501ad061e8";
 
         private TabCaptionService? _tabCaptionService;
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            await base.InitializeAsync(cancellationToken, progress);
+
             _tabCaptionService = new TabCaptionService(this);
             await _tabCaptionService.InitializeAsync();
         }
