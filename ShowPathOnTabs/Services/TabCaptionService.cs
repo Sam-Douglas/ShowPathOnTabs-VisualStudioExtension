@@ -41,7 +41,21 @@ internal sealed class TabCaptionService(AsyncPackage package) : IVsRunningDocTab
 
     public int OnAfterSave(uint docCookie) => VSConstants.S_OK;
 
-    public int OnAfterAttributeChange(uint docCookie, uint grfAttribs) => VSConstants.S_OK;
+    /// <summary>
+    /// Fires when a document's attributes change, such as when a file is renamed or saved to a new path.
+    /// </summary>
+    public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        // file path changed, file reloaded
+        const uint renameMask = (uint)(__VSRDTATTRIB.RDTA_MkDocument | __VSRDTATTRIB.RDTA_DocDataReloaded);
+
+        if ((grfAttribs & renameMask) != 0)
+            UpdateTabCaptions();
+
+        return VSConstants.S_OK;
+    }
 
     /// <summary>
     /// Tab is about to be fully closed
