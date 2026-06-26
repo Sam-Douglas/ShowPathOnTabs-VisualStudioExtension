@@ -56,7 +56,7 @@ internal sealed class TabCaptionService(AsyncPackage package) : IVsRunningDocTab
 
     /// <summary>
     /// A tab is about to be in focus.
-    /// fFirstShow is none-zero the first time a tab is opened.
+    /// FirstShow is non-zero the first time a tab is opened.
     /// </summary>
     public int OnBeforeDocumentWindowShow(uint docCookie, int fFirstShow, IVsWindowFrame pFrame)
     {
