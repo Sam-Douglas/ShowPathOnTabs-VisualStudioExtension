@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="ShowPathOnTabs.c758877c-693e-4299-88e4-4e481e7bdc20" Version="0.2" Language="en-GB" Publisher="Sam Douglas" />
     <DisplayName>Show Path On Tabs</DisplayName>
-    <Description>Updates tab captions to show captions where there is ambiguity.</Description>
+    <Description>Displays the minimum required file path on tab captions so you can quickly identify files when multiple with the same name are open.</Description>
     <License>Resources\LICENSE.txt</License>
     <Icon>Resources\Icon.png</Icon>
     <Tags>Show Path On Tabs;Tabs;Tab;Tab Caption;Disambiguate</Tags>
